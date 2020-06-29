@@ -627,7 +627,7 @@ namespace TeconMoon_WiiVC_Injector_Jam
         }
 
         //call options
-        private bool LaunchProgram()
+        private bool LaunchProgram(List<string> infoMessageStore = null)
         {
             bool exitNormally = true;
 
@@ -659,82 +659,103 @@ namespace TeconMoon_WiiVC_Injector_Jam
                 });
             }
 
-            try
-            {
-                Process process = Process.Start(Launcher);
-                System.Timers.Timer OutputPumpTimer = new System.Timers.Timer();
+			if (infoMessageStore == null)
+				infoMessageStore = new List<string>();
 
-                process.OutputDataReceived += (s, d) =>
-                {
-                    if (currentLogLevel <= LogLevel.Debug)
-                    {
-                        lock(buildOutputBuffer)
-                        {
-                            buildOutputBuffer.AppendOutput(d.Data, BuildOutputType.Normal);
-                        }                       
-                    }
-                };
+			Process process = null;
+			try
+			{
+				process = Process.Start(Launcher);
+				System.Timers.Timer OutputPumpTimer = new System.Timers.Timer();
 
-                process.ErrorDataReceived += (s, d) =>
-                {
-                    //
-                    // Whatever, the error information should be printed.
-                    //
-                    lock(buildOutputBuffer)
-                    {
-                        buildOutputBuffer.AppendOutput(d.Data, BuildOutputType.Error);
-                    }                    
-                };
+				process.OutputDataReceived += (s, d) =>
+				{
+					if (currentLogLevel <= LogLevel.Debug)
+					{
+						lock (buildOutputBuffer)
+						{
+							buildOutputBuffer.AppendOutput(d.Data, BuildOutputType.Normal);
+						}
+					}
+					else
+					{
+						infoMessageStore.Add(d.Data);
+					}
+				};
 
-                OutputPumpTimer.Interval = 100;
-                OutputPumpTimer.Elapsed += (sender, e) =>
-                {
-                    lock (buildOutputBuffer)
-                    {
-                        buildOutputBuffer.Flush();
-                    }
-                };
-                OutputPumpTimer.Start();
+				process.ErrorDataReceived += (s, d) =>
+				{
+					//
+					// Whatever, the error information should be printed.
+					//
+					lock (buildOutputBuffer)
+					{
+						buildOutputBuffer.AppendOutput(d.Data, BuildOutputType.Error);
+					}
+				};
 
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
+				OutputPumpTimer.Interval = 100;
+				OutputPumpTimer.Elapsed += (sender, e) =>
+				{
+					lock (buildOutputBuffer)
+					{
+						buildOutputBuffer.Flush();
+					}
+				};
+				OutputPumpTimer.Start();
 
-                while (!process.WaitForExit(500))
-                {
-                    if (LastBuildCancelled)
-                    {
-                        process.CloseMainWindow();
-                        if (!process.WaitForExit(100))
-                        {
-                            process.Kill();
-                        }
+				process.BeginOutputReadLine();
+				process.BeginErrorReadLine();
 
-                        exitNormally = false;
-                    }
-                }
+				while (!process.WaitForExit(500))
+				{
+					if (LastBuildCancelled)
+					{
+						process.CloseMainWindow();
+						if (!process.WaitForExit(100))
+						{
+							process.Kill();
+						}
 
-                OutputPumpTimer.Stop();               
+						exitNormally = false;
+					}
+				}
 
-                process.Close();
+				OutputPumpTimer.Stop();
 
-                lock (buildOutputBuffer)
-                {
-                    buildOutputBuffer.Flush();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Write("err(LaunchProgram): " + ex.Message);
+				if (process.ExitCode != 0)
+				{
+					lock (buildOutputBuffer)
+					{
+						foreach (var s in infoMessageStore)
+							buildOutputBuffer.AppendOutput(s, BuildOutputType.Error);
 
-                if (ThrowProcessException)
-                {
-                    throw ex;
-                }
+						exitNormally = false;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.Write("err(LaunchProgram): " + ex.Message);
 
-                exitNormally = false;
-            }
+				if (ThrowProcessException)
+				{
+					throw ex;
+				}
 
-            if (!exitNormally && ThrowProcessException)
+				exitNormally = false;
+			}
+			finally
+			{
+				process.Close();
+
+				lock (buildOutputBuffer)
+				{
+					buildOutputBuffer.Flush();
+				}
+			}
+
+			if (!exitNormally && ThrowProcessException)
             {
                 throw new Exception(NormalizeCmdlineArg(LauncherExeFile)
                     + Trt.Tr(" does not exit normally."));

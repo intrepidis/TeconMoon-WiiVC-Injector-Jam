@@ -18,6 +18,7 @@ namespace TeconMoon_WiiVC_Injector_Jam
 {
     partial class WiiVC_Injector
     {
+		private static readonly string nl = Environment.NewLine;
         private delegate bool BuildAction();
 
         private event EventHandler PreBuild;
@@ -1469,11 +1470,25 @@ namespace TeconMoon_WiiVC_Injector_Jam
 
                 if (!DisableTrimming.Checked)
                 {
-                    LauncherExeFile = TempToolsPath + "WIT\\wit.exe";
-                    LauncherExeArgs = "extract " + NormalizeCmdlineArg(GameIso) + " --DEST " + NormalizeCmdlineArg(TempSourcePath + "ISOEXTRACT") + " --psel data -vv1";
-                    LaunchProgram();
+					string dest = NormalizeCmdlineArg(TempSourcePath + "ISOEXTRACT");
+					if (Directory.Exists(dest) || File.Exists(dest))
+					{
+						throw new ApplicationException($"Folder/file already exists: {dest}");
+					}
 
-                    if (ForceCC.Checked)
+					var infoMessageStore = new List<string>();
+
+					LauncherExeFile = TempToolsPath + "WIT\\wit.exe";
+                    LauncherExeArgs = "extract " + NormalizeCmdlineArg(GameIso) + " --DEST " + dest + " --psel data -vv1";
+                    LaunchProgram(infoMessageStore);
+
+					if (!Directory.Exists(dest))
+					{
+						string msgs = string.Join(nl, infoMessageStore);
+						throw new ApplicationException($"Folder wasn't created as expected by 'wit.exe': {dest}{nl}'wit.exe' output:{nl}{msgs}");
+					}
+
+					if (ForceCC.Checked)
                     {
                         LauncherExeFile = TempToolsPath + "EXE\\GetExtTypePatcher.exe";
                         LauncherExeArgs = "\"" + TempSourcePath + "ISOEXTRACT\\sys\\main.dol\" -nc";

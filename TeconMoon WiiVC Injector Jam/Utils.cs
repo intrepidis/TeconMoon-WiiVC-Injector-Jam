@@ -47,7 +47,7 @@ namespace TeconMoon_WiiVC_Injector_Jam
                 private List<BuildOutputItem> buildOutputItems = new List<BuildOutputItem>();
                 private StringBuilder stringBuilder;
 
-                private bool OutputCanbeCached(BuildOutputType outputType)
+                private bool OutputCanBeCached(BuildOutputType outputType)
                 {
                     if (buildOutputItems.Any())
                     {
@@ -74,7 +74,7 @@ namespace TeconMoon_WiiVC_Injector_Jam
                         return;
                     }
 
-                    if (!OutputCanbeCached(outputType))
+                    if (!OutputCanBeCached(outputType))
                     {
                         FlushCache();
 
