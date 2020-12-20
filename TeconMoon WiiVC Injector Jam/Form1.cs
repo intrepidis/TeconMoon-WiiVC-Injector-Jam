@@ -2685,9 +2685,7 @@ namespace TeconMoon_WiiVC_Injector_Jam
 
         private void GenerateImageMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //
-            // If we use WPF, it will be very smart to do this in 'Binding' way. :P
-            //
+            // If we used WPF it would have taken weeks to figure out all the 'Binding' bugs. :-D
             foreach (ToolStripMenuItem item in GenerateImageMenu.Items)
             {
                 item.Checked = item.Tag.Equals(GenerateImageBackgnd);

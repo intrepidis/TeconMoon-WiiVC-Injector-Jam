@@ -1,14 +1,11 @@
 @echo off
 
+::Note: INTREPIDIS_SOURCECODE_PATH should equal something like %USERPROFILE%\Desktop\Home\Coding
+call "%INTREPIDIS_SOURCECODE_PATH%\Intrepidis Suite\Commands\cn_dev.bat"
+
 set ASSEMBLY_NAME=TeconMoon WiiVC Injector Jam
 
 set BASE_PATH=%~dp0
-
-if "%VSCMD_VER%" neq "" goto :SETUP_ENVIRONMENT_DONE
-:SETUP_ENVIRONMENT
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
-:SETUP_ENVIRONMENT_DONE
-
 cd "%BASE_PATH%"
 
 :BUILD_RELEASE

@@ -1,0 +1,8 @@
+Links
+===
+
+https://github.com/intrepidis/TeconMoon-WiiVC-Injector-Jam/releases/tag/11.0.1.0
+
+https://gbatemp.net/threads/release-wiivc-injector-script-gc-wii-homebrew-support.483577/page-347
+https://www.reddit.com/r/CemuPiracy/comments/fn3azh/wiivc_injector_error/
+https://www.reddit.com/r/WiiHacks/comments/fne0hg/wiivc_injector_error/
